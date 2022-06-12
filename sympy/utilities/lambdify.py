@@ -180,7 +180,7 @@ _lambdify_generated_counter = 1
 
 @doctest_depends_on(modules=('numpy', 'scipy', 'tensorflow', 'jax,'), python_version=(3,))
 def lambdify(args, expr, modules=None, printer=None, use_imps=True,
-             dummify=False, cse=False):
+             dummify=False, cse=False, parametric=False):
     """Convert a SymPy expression into a function that allows for fast
     numeric evaluation.
 
@@ -350,6 +350,21 @@ def lambdify(args, expr, modules=None, printer=None, use_imps=True,
         When ``True``, ``sympy.simplify.cse`` is used, otherwise (the default)
         the user may pass a function matching the ``cse`` signature.
 
+    parameteric : bool, optional
+        If to allow numeric values (sympy.Number atoms) to be changed in the 
+        generated function. Can be useful in scenarios where these numeric 
+        values need to be optimised/modified.
+
+        When ``True``, the function returned by lambdify will take the below 
+        modified form: 
+
+        >>> f = lambdify(x, 2*x + 1, parametric=True)
+        >>> f(1)
+        3
+        >>> f(1, params=[1,0])
+        2
+        >>> f(1, params=[0,1])
+        1
 
     Examples
     ========
@@ -757,6 +772,7 @@ def lambdify(args, expr, modules=None, printer=None, use_imps=True,
     and SciPy namespaces.
     """
     from sympy.core.symbol import Symbol
+    from sympy.core.numbers import Number, Integer, Rational, Float
     from sympy.core.expr import Expr
 
     # If the user hasn't specified any modules, use what is available.
@@ -876,6 +892,27 @@ or tuple for the function arguments.
         cses, _expr = (), expr
     funcstr = funcprinter.doprint(funcname, iterable_args, _expr, cses=cses)
 
+    # Modify the generated function string if parameteric functions are desired
+    if parametric:
+        # Ensure parameter order matches expression argument order
+        atoms = [list(arg.atoms(Number)) for arg in expr.as_ordered_terms()]
+        atoms = sum(atoms, []) # Flatten set to list
+        default_params = [None]*len(atoms)
+        # Format for string replacement
+        for i, number in enumerate(atoms):
+            default_params[i]=float(number)
+            if issubclass(number.func, Integer):
+                replacement_txt = str(int(number))
+            elif issubclass(number.func, Rational):
+                replacement_txt = str(number)
+            elif issubclass(number.func, Float):
+                replacement_txt = str(float(number))
+            else:
+                continue
+            funcstr = funcstr.replace(replacement_txt, f"params[{i}]")
+        # Add params kwarg to the function signature
+        funcstr = funcstr.replace("):", f", params={default_params}):")
+
     # Collect the module imports from the code printers.
     imp_mod_lines = []
     for mod, keys in (getattr(printer, 'module_imports', None) or {}).items():
@@ -908,6 +945,7 @@ or tuple for the function arguments.
 
     # Apply the docstring
     sig = "func({})".format(", ".join(str(i) for i in names))
+    sig = sig.replace(")", f", params={default_params}):") if parametric else sig
     sig = textwrap.fill(sig, subsequent_indent=' '*8)
     expr_str = str(expr)
     if len(expr_str) > 78:
