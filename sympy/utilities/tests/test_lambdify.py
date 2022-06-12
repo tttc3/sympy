@@ -56,6 +56,7 @@ scipy = import_module('scipy', import_kwargs={'fromlist': ['sparse']})
 numexpr = import_module('numexpr')
 tensorflow = import_module('tensorflow')
 cupy = import_module('cupy')
+jax = import_module('jax')
 numba = import_module('numba')
 
 if tensorflow:
@@ -1484,6 +1485,43 @@ def test_cupy_dotproduct():
         cupy.array([14])
 
 
+def test_jax_array_arg():
+    if not jax:
+        skip("JAX not installed")
+
+    f = lambdify([[x, y]], x*x + y, 'jax')
+    result = f(jax.numpy.array([2.0, 1.0]))
+    assert result == 5
+    assert "jax" in str(type(result))
+
+
+def test_jax_array_arg_using_numpy():
+    if not jax:
+        skip("JAX not installed")
+
+    f = lambdify([[x, y]], x*x + y, 'numpy')
+    result = f(jax.numpy.array([2.0, 1.0]))
+    assert result == 5
+    assert "jax" in str(type(result))
+
+
+def test_jax_dotproduct():
+    if not jax:
+        skip("JAX not installed")
+
+    A = Matrix([x, y, z])
+    f1 = lambdify([x, y, z], DotProduct(A, A), modules='jax')
+    f2 = lambdify([x, y, z], DotProduct(A, A.T), modules='jax')
+    f3 = lambdify([x, y, z], DotProduct(A.T, A), modules='jax')
+    f4 = lambdify([x, y, z], DotProduct(A, A.T), modules='jax')
+
+    assert f1(1, 2, 3) == \
+        f2(1, 2, 3) == \
+        f3(1, 2, 3) == \
+        f4(1, 2, 3) == \
+        jax.numpy.array([14])
+
+
 def test_lambdify_cse():
     def dummy_cse(exprs):
         return (), exprs
@@ -1572,6 +1610,16 @@ def test_lambdify_cse():
             f = case.lambdify(cse=cse)
             result = f(*case.num_args)
             case.assertAllClose(result)
+
+
+def test_lambdify_parametric():
+    f, params = lambdify([[x, y]], 2*x*x + 3*y + 1 + 0, 'jax', parametric=True)
+    params_variant = params.copy()
+    params_variant[1] = 1
+    assert f(jax.numpy.array([2.0, 1.0])) == 12 and \
+        f(jax.numpy.array([2.0, 1.0]), params=[2,3,1,1]) == 6 and \
+        f(jax.numpy.array([2.0, 1.0]), params=[0,1,1,0]) == 4 and \
+        f(jax.numpy.array([2.0, 1.0]), params=params_variant) == 9
 
 def test_deprecated_set():
     with warns_deprecated_sympy():

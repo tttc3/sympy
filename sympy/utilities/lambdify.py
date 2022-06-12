@@ -351,20 +351,23 @@ def lambdify(args, expr, modules=None, printer=None, use_imps=True,
         the user may pass a function matching the ``cse`` signature.
 
     parameteric : bool, optional
-        If to allow numeric values (sympy.Number atoms) to be changed in the 
+        Allow numeric values (sympy.Number atoms) to be changed in the 
         generated function. Can be useful in scenarios where these numeric 
-        values need to be optimised/modified.
+        values need to be optimised/modified, but manually changing these values 
+        and regenerating the function would be inefficient/undesirable.
 
         When ``True``, the function returned by lambdify will take the below 
-        modified form: 
+        modified form, where params are the default parameter values used in the 
+        generated function: 
 
-        >>> f = lambdify(x, 2*x + 1, parametric=True)
+        >>> f, params = lambdify(x, 2*x + 1, parametric=True)
         >>> f(1)
         3
         >>> f(1, params=[1,0])
         2
-        >>> f(1, params=[0,1])
-        1
+        >>> params[1] = 1
+        >>> f(1, params=params)
+        2
 
     Examples
     ========
@@ -892,7 +895,7 @@ or tuple for the function arguments.
         cses, _expr = (), expr
     funcstr = funcprinter.doprint(funcname, iterable_args, _expr, cses=cses)
 
-    # Modify the generated function string if parameteric functions are desired
+    # Modify the generated function string if parametric functions are desired
     if parametric:
         # Ensure parameter order matches expression argument order
         atoms = [list(arg.atoms(Number)) for arg in expr.as_ordered_terms()]
@@ -960,7 +963,7 @@ or tuple for the function arguments.
         "Imported modules:\n\n"
         "{imp_mods}"
         ).format(sig=sig, expr=expr_str, src=funcstr, imp_mods='\n'.join(imp_mod_lines))
-    return func
+    return func if not parametric else (func, default_params)
 
 def _module_present(modname, modlist):
     if modname in modlist:

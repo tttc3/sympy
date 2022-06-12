@@ -149,20 +149,20 @@ that will often be the best choice.  If you don't have Aesara but do have
 lambdify with the numpy module, but have a GPU, CuPy and JAX can provide substantial
 speedups with little effort.
 
-+-----------------+-------+-----------------------------+---------------+
-| Tool            | Speed | Qualities                   | Dependencies  |
-+=================+=======+=============================+===============+
-| subs/evalf      | 50us  | Simple                      | None          |
-+-----------------+-------+-----------------------------+---------------+
-| lambdify        | 1us   | Scalar functions            | math          |
-+-----------------+-------+-----------------------------+---------------+
-| lambdify-numpy  | 10ns  | Vector functions            | numpy         |
-+-----------------+-------+-----------------------------+---------------+
-| ufuncify        | 10ns  | Complex vector expressions  | f2py, Cython  |
-+-----------------+-------+-----------------------------+---------------+
-| lambdify-cupy   | 10ns  | Vector functions on GPUs    | cupy          |
-+-----------------+-------+-----------------------------+---------------+
-| lambdify-jax    | 10ns  | Vector functions on GPUs    | jax           |
-+-----------------+-------+-----------------------------+---------------+
-| Aesara          | 10ns  | Many outputs, CSE, GPUs     | Aesara        |
-+-----------------+-------+-----------------------------+---------------+
++-----------------+-------+------------------------------------------+---------------+
+| Tool            | Speed | Qualities                                | Dependencies  |
++=================+=======+==========================================+===============+
+| subs/evalf      | 50us  | Simple                                   | None          |
++-----------------+-------+------------------------------------------+---------------+
+| lambdify        | 1us   | Scalar functions                         | math          |
++-----------------+-------+------------------------------------------+---------------+
+| lambdify-numpy  | 10ns  | Vector functions                         | numpy         |
++-----------------+-------+------------------------------------------+---------------+
+| ufuncify        | 10ns  | Complex vector expressions               | f2py, Cython  |
++-----------------+-------+------------------------------------------+---------------+
+| lambdify-cupy   | 10ns  | Vector functions on GPUs                 | cupy          |
++-----------------+-------+------------------------------------------+---------------+
+| lambdify-jax    | 10ns  | Vector functions on CPUs, GPUs and TPUs  | jax           |
++-----------------+-------+------------------------------------------+---------------+
+| Aesara          | 10ns  | Many outputs, CSE, GPUs                  | Aesara        |
++-----------------+-------+------------------------------------------+---------------+
