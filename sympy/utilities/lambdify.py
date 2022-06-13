@@ -351,14 +351,14 @@ def lambdify(args, expr, modules=None, printer=None, use_imps=True,
         the user may pass a function matching the ``cse`` signature.
 
     parameteric : bool, optional
-        Allow numeric values (sympy.Number atoms) to be changed in the 
-        generated function. Can be useful in scenarios where these numeric 
-        values need to be optimised/modified, but manually changing these values 
+        Allow numeric values (sympy.Number atoms) to be changed in the
+        generated function. Can be useful in scenarios where these numeric
+        values need to be optimised/modified, but manually changing these values
         and regenerating the function would be inefficient/undesirable.
 
-        When ``True``, the function returned by lambdify will take the below 
-        modified form, where params are the default parameter values used in the 
-        generated function: 
+        When ``True``, the function returned by lambdify will take the below
+        modified form, where params are the default parameter values used in the
+        generated function:
 
         >>> f, params = lambdify(x, 2*x + 1, parametric=True)
         >>> f(1)

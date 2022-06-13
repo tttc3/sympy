@@ -711,7 +711,7 @@ def _get_doctest_blacklist():
         blacklist.extend([
             "doc/src/modules/numeric-computation.rst",
         ])
-    
+
     if import_module('jax') is None:
         blacklist.extend([
             "doc/src/modules/numeric-computation.rst",

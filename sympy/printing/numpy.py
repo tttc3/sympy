@@ -45,7 +45,7 @@ class NumPyPrinter(ArrayPrinter, PythonCodePrinter):
     def __init__(self, settings=None):
         """
         `settings` is passed to CodePrinter.__init__()
-        `module` specifies the array module to use, currently 'NumPy', 'CuPy' 
+        `module` specifies the array module to use, currently 'NumPy', 'CuPy'
         or 'JAX'.
         """
         self.language = "Python with {}".format(self._module)
