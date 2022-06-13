@@ -85,9 +85,9 @@ a drop-in replacement for numpy.
     [ 0.84147098  0.84119981  0.84092844 ... -0.05426074 -0.05433146
      -0.05440211]
 
-JAX is a similar alternative to CuPy that provides GPU and TPU acceleration via 
-just-in-time compliation to XLA. It too, can in some cases, be used as a drop-in 
-replacement for numpy. 
+JAX is a similar alternative to CuPy that provides GPU and TPU acceleration via
+just-in-time compliation to XLA. It too, can in some cases, be used as a drop-in
+replacement for numpy.
 
     >>> f = lambdify(x, expr, "jax")
     >>> import jax.numpy as jnp

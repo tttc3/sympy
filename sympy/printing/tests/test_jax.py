@@ -33,9 +33,10 @@ from sympy.external import import_module
 # TODO: ensure jax and jaxlib is installed in the test suite?
 jax = import_module('jax')
 
-deafult_float_info = jax.numpy.finfo(jax.numpy.array([]).dtype)
-JAX_DEFAULT_EPSILON = deafult_float_info.eps
-JAX_DEFAULT_SMALLEST_NORMAL = deafult_float_info.smallest_normal
+if jax:
+    deafult_float_info = jax.numpy.finfo(jax.numpy.array([]).dtype)
+    JAX_DEFAULT_EPSILON = deafult_float_info.eps
+    JAX_DEFAULT_SMALLEST_NORMAL = deafult_float_info.smallest_normal
 
 def test_jax_piecewise_regression():
     """

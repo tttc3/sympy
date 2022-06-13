@@ -350,7 +350,7 @@ def lambdify(args, expr, modules=None, printer=None, use_imps=True,
         When ``True``, ``sympy.simplify.cse`` is used, otherwise (the default)
         the user may pass a function matching the ``cse`` signature.
 
-    parameteric : bool, optional
+    parametric : bool, optional
         Allow numeric values (sympy.Number atoms) to be changed in the
         generated function. Can be useful in scenarios where these numeric
         values need to be optimised/modified, but manually changing these values
@@ -896,6 +896,9 @@ or tuple for the function arguments.
     funcstr = funcprinter.doprint(funcname, iterable_args, _expr, cses=cses)
 
     # Modify the generated function string if parametric functions are desired
+    #
+    # Problems: replacement isn't restriced to function string
+    #           what happens when there are multiple params with the same value?
     if parametric:
         # Ensure parameter order matches expression argument order
         atoms = [list(arg.atoms(Number)) for arg in expr.as_ordered_terms()]

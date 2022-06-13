@@ -25,9 +25,10 @@ from sympy.external import import_module
 
 np = import_module('numpy')
 
-deafult_float_info = np.finfo(np.array([]).dtype)
-NUMPY_DEFAULT_EPSILON = deafult_float_info.eps
-NUMPY_DEFAULT_SMALLEST_NORMAL = deafult_float_info.smallest_normal
+if np:
+    deafult_float_info = np.finfo(np.array([]).dtype)
+    NUMPY_DEFAULT_EPSILON = deafult_float_info.eps
+    NUMPY_DEFAULT_SMALLEST_NORMAL = deafult_float_info.smallest_normal
 
 def test_numpy_piecewise_regression():
     """
