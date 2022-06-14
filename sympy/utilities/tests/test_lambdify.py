@@ -1613,13 +1613,31 @@ def test_lambdify_cse():
 
 
 def test_lambdify_parametric():
-    f, params = lambdify([[x, y]], 2*x*x + 3*y + 1 + 0, 'jax', parametric=True)
-    params_variant = params.copy()
-    params_variant[1] = 1
-    assert f(jax.numpy.array([2.0, 1.0])) == 12 and \
-        f(jax.numpy.array([2.0, 1.0]), params=[2,3,1,1]) == 6 and \
-        f(jax.numpy.array([2.0, 1.0]), params=[0,1,1,0]) == 4 and \
-        f(jax.numpy.array([2.0, 1.0]), params=params_variant) == 9
+    x, y = symbols("x y")
+    printers = {
+        "mpmath":mpmath,
+        "scipy":scipy,
+        "numpy":numpy,
+        "cupy":cupy,
+        "jax": jax,
+        "numexpr":numexpr,
+        "tensorflow":tensorflow,
+        "sympy":sympy
+    }
+
+    for k in printers:
+        if not printers[k]:
+            continue
+        # This expression will simplify to 2x**2 +3*y + 3
+        # Thus, exported params will be [2,2,3,3]
+        expr = 2*x*x + 3*y + 2 + 1
+        f, params = lambdify([x, y], expr , modules=k, parametric=True)
+        params_variant = params.copy()
+        params_variant[1] = 1
+        assert f(2.0, 1.0) == 14 and \
+            f(2.0, 1.0, params=[2,2,3,0]) == 11 and\
+            f(2.0, 1.0, params=[1,2,1,0]) == 5 and\
+            f(2.0, 1.0, params = params_variant) == 10
 
 def test_deprecated_set():
     with warns_deprecated_sympy():

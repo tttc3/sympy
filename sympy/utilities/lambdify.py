@@ -351,10 +351,10 @@ def lambdify(args, expr, modules=None, printer=None, use_imps=True,
         the user may pass a function matching the ``cse`` signature.
 
     parametric : bool, optional
-        Allow numeric values (sympy.Number atoms) to be changed in the
-        generated function. Can be useful in scenarios where these numeric
-        values need to be optimised/modified, but manually changing these values
-        and regenerating the function would be inefficient/undesirable.
+        Allow numeric values to be changed in the generated function. Can be
+        useful in scenarios where these numeric values need to be
+        optimised/modified, but manually changing these values and regenerating
+        the function would be inefficient/undesirable.
 
         When ``True``, the function returned by lambdify will take the below
         modified form, where params are the default parameter values used in the
@@ -775,7 +775,6 @@ def lambdify(args, expr, modules=None, printer=None, use_imps=True,
     and SciPy namespaces.
     """
     from sympy.core.symbol import Symbol
-    from sympy.core.numbers import Number, Integer, Rational, Float
     from sympy.core.expr import Expr
 
     # If the user hasn't specified any modules, use what is available.
@@ -845,9 +844,16 @@ def lambdify(args, expr, modules=None, printer=None, use_imps=True,
             if isinstance(m, dict):
                 for k in m:
                     user_functions[k] = k
-        printer = Printer({'fully_qualified_modules': False, 'inline': True,
-                           'allow_unknown_functions': True,
-                           'user_functions': user_functions})
+
+        printer_settings = {
+            'fully_qualified_modules': False,
+            'inline': True,
+            'allow_unknown_functions': True,
+            'user_functions': user_functions,
+            'parametric': parametric
+        }
+
+        printer = Printer(printer_settings)
 
     if isinstance(args, set):
         sympy_deprecation_warning(
@@ -896,28 +902,15 @@ or tuple for the function arguments.
     funcstr = funcprinter.doprint(funcname, iterable_args, _expr, cses=cses)
 
     # Modify the generated function string if parametric functions are desired
-    #
-    # Problems: replacement isn't restriced to function string
-    #           what happens when there are multiple params with the same value?
     if parametric:
-        # Ensure parameter order matches expression argument order
-        atoms = [list(arg.atoms(Number)) for arg in expr.as_ordered_terms()]
-        atoms = sum(atoms, []) # Flatten set to list
-        default_params = [None]*len(atoms)
-        # Format for string replacement
-        for i, number in enumerate(atoms):
-            default_params[i]=float(number)
-            if issubclass(number.func, Integer):
-                replacement_txt = str(int(number))
-            elif issubclass(number.func, Rational):
-                replacement_txt = str(number)
-            elif issubclass(number.func, Float):
-                replacement_txt = str(float(number))
-            else:
-                continue
-            funcstr = funcstr.replace(replacement_txt, f"params[{i}]")
+        default_params = printer.params
         # Add params kwarg to the function signature
         funcstr = funcstr.replace("):", f", params={default_params}):")
+        # Unpack params list, this is required for compatibility with NumExpr
+        param_str = ", ".join([f"params_{i}" for i, _ in enumerate(default_params)])
+        # Add unpacking just before return
+        funcstr = funcstr.replace("\n    return", f"\n    [{param_str}] = params"
+                                                   "\n    return")
 
     # Collect the module imports from the code printers.
     imp_mod_lines = []
